@@ -2,11 +2,11 @@
 {
   "parent": "${modid}:custom/${data.customModelName.split(":")[0]}",
   "textures": {
-    "all": "${data.texture.format("%s:block/%s")}",
-    "particle": "${data.particleTexture?has_content?then(data.particleTexture, element.particleTexture?has_content?then(element.particleTexture, element.texture)).format("%s:block/%s")}"
+    "all": "${modid}:block/${data.texture}",
+    "particle": "${modid}:block/${data.particleTexture?has_content?then(data.particleTexture, element.particleTexture?has_content?then(element.particleTexture, element.texture))}"
       <#if data.getTextureMap()??>
         <#list data.getTextureMap().entrySet() as texture>,
-          "${texture.getKey()}": "${texture.getValue().format("%s:block/%s")}"
+          "${texture.getKey()}": "${modid}:block/${texture.getValue()}"
         </#list>
       </#if>
   },
