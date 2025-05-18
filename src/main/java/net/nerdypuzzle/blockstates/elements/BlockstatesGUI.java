@@ -15,7 +15,10 @@ import net.mcreator.workspace.elements.ModElement;
 import net.nerdypuzzle.blockstates.parts.JBlockstateList;
 import net.nerdypuzzle.blockstates.parts.PluginElementTypes;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.stream.Collectors;
@@ -99,6 +102,12 @@ public class BlockstatesGUI extends ModElementGUI<Blockstates> {
         blockstates.block = block.getSelectedItem();
         blockstates.blockstateList = blockstateList.getEntries();
         return blockstates;
+    }
+
+    @Override
+    @Nullable
+    public URI contextURL() throws URISyntaxException {
+        return null;
     }
 
 }

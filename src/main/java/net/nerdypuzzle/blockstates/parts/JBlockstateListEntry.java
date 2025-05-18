@@ -18,7 +18,7 @@ import net.mcreator.ui.minecraft.boundingboxes.JBoundingBoxList;
 import net.mcreator.ui.validation.IValidable;
 import net.mcreator.ui.validation.ValidationGroup;
 import net.mcreator.ui.validation.Validator;
-import net.mcreator.ui.validation.validators.TileHolderValidator;
+import net.mcreator.ui.validation.validators.TextureSelectionButtonValidator;
 import net.mcreator.ui.workspace.resources.TextureType;
 import net.mcreator.util.ListUtils;
 import net.mcreator.workspace.Workspace;
@@ -154,7 +154,7 @@ public class JBlockstateListEntry extends JSimpleListEntry<Blockstates.Blockstat
             this.textureBack.setVisible(true);
         }
 
-        this.texture.setValidator(new TileHolderValidator(this.texture));
+        texture.setValidator(new TextureSelectionButtonValidator(texture));
         this.page1group.addValidationElement(this.texture);
 
     }
