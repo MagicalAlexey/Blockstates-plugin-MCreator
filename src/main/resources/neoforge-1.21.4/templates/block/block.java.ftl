@@ -2,29 +2,29 @@
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
  # Copyright (C) 2020-2023, Pylo, opensource contributors
- #
+ # 
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
  # the Free Software Foundation, either version 3 of the License, or
  # (at your option) any later version.
- #
+ # 
  # This program is distributed in the hope that it will be useful,
  # but WITHOUT ANY WARRANTY; without even the implied warranty of
  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  # GNU General Public License for more details.
- #
+ # 
  # You should have received a copy of the GNU General Public License
  # along with this program.  If not, see <https://www.gnu.org/licenses/>.
- #
+ # 
  # Additional permission for code generator templates (*.ftl files)
- #
- # As a special exception, you may create a larger work that contains part or
- # all of the MCreator code generator templates (*.ftl files) and distribute
- # that work under terms of your choice, so long as that work isn't itself a
- # template for code generation. Alternatively, if you modify or redistribute
- # the template itself, you may (at your option) remove this special exception,
- # which will cause the template and the resulting code generator output files
- # to be licensed under the GNU General Public License without this special
+ # 
+ # As a special exception, you may create a larger work that contains part or 
+ # all of the MCreator code generator templates (*.ftl files) and distribute 
+ # that work under terms of your choice, so long as that work isn't itself a 
+ # template for code generation. Alternatively, if you modify or redistribute 
+ # the template itself, you may (at your option) remove this special exception, 
+ # which will cause the template and the resulting code generator output files 
+ # to be licensed under the GNU General Public License without this special 
  # exception.
 -->
 
@@ -117,7 +117,6 @@ public class ${name}Block extends
 
 	<#macro blockProperties>
 		properties
-		${data.material}
 		<#if generator.map(data.colorOnMap, "mapcolors") != "DEFAULT">
 			.mapColor(MapColor.${generator.map(data.colorOnMap, "mapcolors")})
 		</#if>
@@ -190,6 +189,12 @@ public class ${name}Block extends
 		<#if data.offsetType != "NONE">
 			.offsetType(Block.OffsetType.${data.offsetType})
 		</#if>
+		<#if data.ignitedByLava>
+			.ignitedByLava()
+		</#if>
+		<#if data.noteBlockInstrument != "harp">
+			.instrument(${generator.map(data.noteBlockInstrument, "noteblockinstruments")})
+		</#if>
 		<#if data.blockBase?has_content && (
 				data.blockBase == "FenceGate" ||
 				data.blockBase == "PressurePlate" ||
@@ -203,30 +208,18 @@ public class ${name}Block extends
 	</#macro>
 
 	public ${name}Block(BlockBehaviour.Properties properties) {
-		<#if data.blockBase?has_content && data.blockBase == "Stairs">
-			super(Blocks.AIR.defaultBlockState(), <@blockProperties/>);
-		<#elseif data.blockBase?has_content && data.blockBase == "PressurePlate">
-		    <#if data.material.getUnmappedValue() == "WOOD">
-		        super(BlockSetType.OAK, <@blockProperties/>);
-		    <#else>
-		        super(BlockSetType.IRON, <@blockProperties/>);
-		    </#if>
-		<#elseif data.blockBase?has_content && data.blockBase == "Button">
-			<#if data.material.getUnmappedValue() == "WOOD">
-		        super(BlockSetType.OAK, 30, <@blockProperties/>);
+		<#if data.blockBase?has_content>
+			<#if data.blockBase == "Stairs">
+				super(Blocks.AIR.defaultBlockState(), <@blockProperties/>);
+			<#elseif data.blockBase == "PressurePlate" || data.blockBase == "TrapDoor" || data.blockBase == "Door">
+				super(BlockSetType.${data.blockSetType}, <@blockProperties/>);
+			<#elseif data.blockBase == "Button">
+				super(BlockSetType.${data.blockSetType}, <#if data.blockSetType == "OAK">30<#else>20</#if>, <@blockProperties/>);
+			<#elseif data.blockBase == "FenceGate">
+				super(WoodType.OAK, <@blockProperties/>);
 			<#else>
-		        super(BlockSetType.STONE, 20, <@blockProperties/>);
+				super(<@blockProperties/>);
 			</#if>
-		<#elseif data.blockBase?has_content && (data.blockBase == "TrapDoor" || data.blockBase == "Door")>
-			<#if data.material.getUnmappedValue() == "IRON">
-				super(BlockSetType.IRON, <@blockProperties/>);
-			<#elseif data.material.getUnmappedValue() == "WOOD">
-				super(BlockSetType.OAK, <@blockProperties/>);
-			<#else>
-				super(BlockSetType.STONE, <@blockProperties/>);
-			</#if>
-		<#elseif data.blockBase?has_content && data.blockBase == "FenceGate">
-			super(WoodType.OAK, <@blockProperties/>);
 		<#else>
 			super(<@blockProperties/>);
 		</#if>
@@ -250,6 +243,12 @@ public class ${name}Block extends
 	    );
 		</#if>
 	}
+
+	<#if data.renderType() == 4>
+    @Override protected RenderShape getRenderShape(BlockState state) {
+		return RenderShape.INVISIBLE;
+	}
+	</#if>
 
 	<#if data.blockBase?has_content && data.blockBase == "Stairs">
    	@Override public float getExplosionResistance() {
@@ -522,6 +521,10 @@ public class ${name}Block extends
 	@Override public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData, Player entity) {
 		return ${mappedMCItemToItemStackCode(data.creativePickItem, 1)};
 	}
+	<#elseif !data.hasBlockItem>
+	@Override public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData, Player entity) {
+		return ItemStack.EMPTY;
+	}
 	</#if>
 
 	<#if generator.map(data.aiPathNodeType, "pathnodetypes") != "DEFAULT">
@@ -534,12 +537,6 @@ public class ${name}Block extends
 	@Override
 	public TriState canSustainPlant(BlockState state, BlockGetter world, BlockPos pos, Direction direction, BlockState plant) {
 		return TriState.TRUE;
-	}
-	</#if>
-
-	<#if data.isLadder>
-	@Override public boolean isLadder(BlockState state, LevelReader world, BlockPos pos, LivingEntity entity) {
-		return true;
 	}
 	</#if>
 
@@ -699,6 +696,18 @@ public class ${name}Block extends
 	    </#if>
 	</#if>
 
+	<#if data.sensitiveToVibration && data.hasInventory>
+	@Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockstate, BlockEntityType<T> blockEntityType) {
+		if (!level.isClientSide && blockEntityType == ${JavaModName}BlockEntities.${REGISTRYNAME}.get()) {
+			return (_level, pos, state, blockEntity) -> {
+				if (blockEntity instanceof ${name}BlockEntity be)
+					VibrationSystem.Ticker.tick(_level, be.getVibrationData(), be.getVibrationUser());
+			};
+		}
+		return null;
+	}
+	</#if>
+
 	<#if data.tintType != "No tint">
 		@OnlyIn(Dist.CLIENT) public static void blockColorLoad(RegisterColorHandlersEvent.Block event) {
 			event.register((bs, world, pos, index) -> {
@@ -713,7 +722,7 @@ public class ${name}Block extends
 					<#if data.tintType == "Grass">
 						BiomeColors.getAverageGrassColor(world, pos) : GrassColor.get(0.5D, 1.0D);
 					<#elseif data.tintType == "Foliage">
-						BiomeColors.getAverageFoliageColor(world, pos) : FoliageColor.FOLIAGE_DEFAULT();
+						BiomeColors.getAverageFoliageColor(world, pos) : FoliageColor.FOLIAGE_DEFAULT;
 					<#elseif data.tintType == "Water">
 						BiomeColors.getAverageWaterColor(world, pos) : -1;
 					<#elseif data.tintType == "Sky">
@@ -724,7 +733,7 @@ public class ${name}Block extends
 						Minecraft.getInstance().level.getBiome(pos).value().getWaterFogColor() : 329011;
 					</#if>
 				</#if>
-			}, ${JavaModName}Blocks.${data.getModElement().getRegistryNameUpper()}.get());
+			}, ${JavaModName}Blocks.${REGISTRYNAME}.get());
 		}
 	</#if>
 
